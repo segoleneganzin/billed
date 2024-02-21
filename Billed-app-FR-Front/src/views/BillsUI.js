@@ -19,8 +19,22 @@ const row = (bill) => {
     `;
 };
 
+// const rows = (data) => {
+//   return (data && data.length) ? data.map(bill => row(bill)).join("") : ""
+// }
+
 const rows = (data) => {
-  return data && data.length ? data.map((bill) => row(bill)).join('') : '';
+  if (!data || !data.length) return '';
+
+  // Sorts data antichronologically using date as sort key
+  const sortedData = data.sort((a, b) => {
+    const dateA = new Date(a.date);
+    const dateB = new Date(b.date);
+    return dateB - dateA; // antichronologic sorts
+  });
+
+  // Maps sorted data into rows and joins them to form a string
+  return sortedData.map((bill) => row(bill)).join('');
 };
 
 export default ({ data: bills, loading, error }) => {
