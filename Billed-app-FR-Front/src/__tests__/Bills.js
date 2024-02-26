@@ -155,6 +155,7 @@ describe('Given I am a user connected as an employee', () => {
         'user',
         JSON.stringify({
           type: 'Employee',
+          email: 'a@a',
         })
       );
 
@@ -163,18 +164,15 @@ describe('Given I am a user connected as an employee', () => {
       document.body.append(root);
       router();
       onNavigate(ROUTES_PATH.Bills);
-
+      await waitFor(() => screen.getByText('Mes notes de frais'));
       const billsPageTitle = screen.getByText('Mes notes de frais');
       expect(billsPageTitle).toBeTruthy();
       const newBillBtn = screen.getByTestId('btn-new-bill');
       expect(newBillBtn).toBeTruthy();
       const billsTable = screen.getByTestId('tbody');
       expect(billsTable).toBeTruthy();
-      const rows = billsTable.querySelectorAll('tr');
-      expect(rows).toBeTruthy();
-      // TODO nombre de ligne dans le tableau = 4
-      // expect(rows).toHaveLength(4);
     });
+
     describe('When an error occurs on API', () => {
       beforeEach(() => {
         jest.spyOn(mockStore, 'bills'); //  simulate function
@@ -185,6 +183,7 @@ describe('Given I am a user connected as an employee', () => {
           'user',
           JSON.stringify({
             type: 'Employee',
+            email: 'a@a',
           })
         );
         const root = document.createElement('div');
@@ -202,7 +201,7 @@ describe('Given I am a user connected as an employee', () => {
         });
         window.onNavigate(ROUTES_PATH.Bills);
         await new Promise(process.nextTick);
-        const message = await screen.getByText(/Erreur 404/);
+        const message = screen.getByText(/Erreur 404/);
         expect(message).toBeTruthy();
       });
 
@@ -217,7 +216,7 @@ describe('Given I am a user connected as an employee', () => {
 
         window.onNavigate(ROUTES_PATH.Bills);
         await new Promise(process.nextTick);
-        const message = await screen.getByText(/Erreur 500/);
+        const message = screen.getByText(/Erreur 500/);
         expect(message).toBeTruthy();
       });
     });

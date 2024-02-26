@@ -19,15 +19,15 @@ export default class NewBill {
   }
   handleChangeFile = (e) => {
     e.preventDefault();
-    const file = this.document.querySelector(`input[data-testid="file"]`)
-      .files[0];
+    const file = e.target.files[0];
+    console.log(file);
     const filePath = e.target.value.split(/\\/g);
     const fileName = filePath[filePath.length - 1];
+    // *** with accept attribut into file input
     const formData = new FormData();
     const email = JSON.parse(localStorage.getItem('user')).email;
     formData.append('file', file);
     formData.append('email', email);
-
     this.store
       .bills()
       .create({
@@ -43,6 +43,39 @@ export default class NewBill {
         this.fileName = fileName;
       })
       .catch((error) => console.error(error));
+
+    // *** without accept attribut into file input
+    // const fileFormat = fileName.substring(fileName.lastIndexOf('.'));
+    // if (
+    //   fileFormat === '.jpg' ||
+    //   fileFormat === '.jpeg' ||
+    //   fileFormat === '.png'
+    // ) {
+    //   e.target.setCustomValidity('');
+    //   const formData = new FormData();
+    //   const email = JSON.parse(localStorage.getItem('user')).email;
+    //   formData.append('file', file);
+    //   formData.append('email', email);
+    //   this.store
+    //     .bills()
+    //     .create({
+    //       data: formData,
+    //       headers: {
+    //         noContentType: true,
+    //       },
+    //     })
+    //     .then(({ fileUrl, key }) => {
+    //       console.log(fileUrl);
+    //       this.billId = key;
+    //       this.fileUrl = fileUrl;
+    //       this.fileName = fileName;
+    //     })
+    //     .catch((error) => console.error(error));
+    // } else {
+    //   e.target.setCustomValidity(
+    //     'Veuillez choisir un format valide (jpg, jpeg ou png)'
+    //   );
+    // }
   };
   handleSubmit = (e) => {
     e.preventDefault();
@@ -69,14 +102,6 @@ export default class NewBill {
       fileName: this.fileName,
       status: 'pending',
     };
-    // if (
-    //   bill.fileName.endsWith('.jpg') ||
-    //   bill.fileName.endsWith('.jpeg') ||
-    //   bill.fileName.endsWith('.png')
-    // ) {
-    //   this.updateBill(bill);
-    //   this.onNavigate(ROUTES_PATH['Bills']);
-    // }
     this.updateBill(bill);
     this.onNavigate(ROUTES_PATH['Bills']);
   };

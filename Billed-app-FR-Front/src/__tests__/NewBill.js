@@ -13,7 +13,7 @@ import { bills } from '../fixtures/bills.js';
 import '@testing-library/jest-dom';
 
 import router from '../app/Router.js';
-
+// TODO new bills test
 describe('Given I am connected as an employee', () => {
   describe('When I am on NewBill Page', () => {
     test('Then envelope icon in vertical layout should be highlighted', async () => {
