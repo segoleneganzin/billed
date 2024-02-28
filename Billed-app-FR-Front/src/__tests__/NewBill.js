@@ -3,10 +3,8 @@
  */
 import { screen, waitFor, fireEvent } from '@testing-library/dom';
 import '@testing-library/jest-dom';
-import BillsUI from '../views/BillsUI.js';
 import NewBillUI from '../views/NewBillUI.js';
 import NewBill from '../containers/NewBill.js';
-import { bills } from '../fixtures/bills.js';
 import { ROUTES, ROUTES_PATH } from '../constants/routes.js';
 import { localStorageMock } from '../__mocks__/localStorage.js';
 import mockStore from '../__mocks__/store.js';

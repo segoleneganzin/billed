@@ -162,14 +162,20 @@ describe('Given I am a user connected as an employee', () => {
       const billsTable = screen.getByTestId('tbody');
       expect(billsTable).toBeTruthy();
       // verify if all test bill's name are presents
-      const bills1 = screen.getAllByText('encore');
+      const bills1 = screen.getByText('encore');
       expect(bills1).toBeTruthy();
-      const bills2 = screen.getAllByText('test1');
+      const bills2 = screen.getByText('test1');
       expect(bills2).toBeTruthy();
       const bills3 = screen.getByText('test3');
       expect(bills3).toBeTruthy();
-      const bills4 = screen.getAllByText('test2');
+      const bills4 = screen.getByText('test2');
       expect(bills4).toBeTruthy();
+      const pendingStatus = screen.getAllByText('En attente');
+      expect(pendingStatus).toHaveLength(1);
+      const refusedStatus = screen.getAllByText('Refused');
+      expect(refusedStatus).toHaveLength(2);
+      const acceptedStatus = screen.getAllByText('Accepté');
+      expect(acceptedStatus).toHaveLength(1);
     });
 
     describe('When an error occurs on API', () => {
