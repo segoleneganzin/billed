@@ -34,7 +34,6 @@ describe('Given I am a user connected as an employee', () => {
       expect(sampleBillsTable.childElementCount).not.toBeGreaterThan(0);
     });
   });
-
   describe('When I am on Bills Page', () => {
     test('Then bill icon in vertical layout should be highlighted', async () => {
       Object.defineProperty(window, 'localStorage', {
@@ -53,7 +52,6 @@ describe('Given I am a user connected as an employee', () => {
       window.onNavigate(ROUTES_PATH.Bills);
       await waitFor(() => screen.getByTestId('icon-window'));
       const windowIcon = screen.getByTestId('icon-window');
-      //expect expression
       expect(windowIcon).toHaveClass('active-icon');
     });
     test('Then bills should be ordered from earliest to latest', () => {
@@ -70,7 +68,6 @@ describe('Given I am a user connected as an employee', () => {
   });
 
   // add
-
   describe('When I click on eye button', () => {
     test('A modal should open', async () => {
       Object.defineProperty(window, 'localStorage', {
@@ -94,15 +91,15 @@ describe('Given I am a user connected as an employee', () => {
       });
       document.body.innerHTML = BillsUI({ data: bills });
 
-      const iconEyes = screen.getAllByTestId('icon-eye');
+      const iconEye = screen.getAllByTestId('icon-eye');
       const handleClickIconEye = jest.fn(billsPage.handleClickIconEye);
       const modale = document.getElementById('modaleFile');
 
-      $.fn.modal = jest.fn(() => modale.classList.add('show')); //mock of Bootstrap modal
+      $.fn.modal = jest.fn(() => modale.classList.add('show')); //mock of jquery modal
 
-      iconEyes.forEach((iconEye) => {
-        iconEye.addEventListener('click', () => handleClickIconEye(iconEye));
-        fireEvent.click(iconEye);
+      iconEye.forEach((icon) => {
+        icon.addEventListener('click', () => handleClickIconEye(icon));
+        fireEvent.click(icon);
         expect(handleClickIconEye).toHaveBeenCalled();
         expect(modale).toHaveClass('show');
       });
@@ -123,16 +120,14 @@ describe('Given I am a user connected as an employee', () => {
           type: 'Employee',
         })
       );
-      const billsDashboard = new Bills({
+      const billsPage = new Bills({
         document,
         onNavigate,
         store: null,
         localStorage: window.localStorage,
       });
       document.body.innerHTML = BillsUI({ data: { bills } });
-      const handleShowBillForm = jest.fn((e) =>
-        billsDashboard.handleClickNewBill()
-      );
+      const handleShowBillForm = jest.fn((e) => billsPage.handleClickNewBill());
       const iconNewBill = screen.getByTestId('btn-new-bill');
       iconNewBill.addEventListener('click', handleShowBillForm);
       fireEvent.click(iconNewBill);
@@ -141,29 +136,24 @@ describe('Given I am a user connected as an employee', () => {
       expect(screen.getByTestId(`form-new-bill`)).toBeTruthy();
     });
   });
+});
 
-  // test d'intégration GET
+// integration test GET
+describe('Given I am a user connected as an employee', () => {
   describe('When I navigate to Bills page', () => {
     test('fetches bills from mock API GET', async () => {
-      const onNavigate = (pathname) => {
-        document.body.innerHTML = ROUTES({ pathname });
-      };
-      Object.defineProperty(window, 'localStorage', {
-        value: localStorageMock,
-      });
-      window.localStorage.setItem(
+      localStorage.setItem(
         'user',
         JSON.stringify({
           type: 'Employee',
           email: 'a@a',
         })
       );
-
       const root = document.createElement('div');
       root.setAttribute('id', 'root');
       document.body.append(root);
       router();
-      onNavigate(ROUTES_PATH.Bills);
+      window.onNavigate(ROUTES_PATH.Bills);
       await waitFor(() => screen.getByText('Mes notes de frais'));
       const billsPageTitle = screen.getByText('Mes notes de frais');
       expect(billsPageTitle).toBeTruthy();
@@ -171,11 +161,20 @@ describe('Given I am a user connected as an employee', () => {
       expect(newBillBtn).toBeTruthy();
       const billsTable = screen.getByTestId('tbody');
       expect(billsTable).toBeTruthy();
+      // verify if all test bill's name are presents
+      const bills1 = screen.getAllByText('encore');
+      expect(bills1).toBeTruthy();
+      const bills2 = screen.getAllByText('test1');
+      expect(bills2).toBeTruthy();
+      const bills3 = screen.getByText('test3');
+      expect(bills3).toBeTruthy();
+      const bills4 = screen.getAllByText('test2');
+      expect(bills4).toBeTruthy();
     });
 
     describe('When an error occurs on API', () => {
       beforeEach(() => {
-        jest.spyOn(mockStore, 'bills'); //  simulate function
+        jest.spyOn(mockStore, 'bills');
         Object.defineProperty(window, 'localStorage', {
           value: localStorageMock,
         });
@@ -183,7 +182,7 @@ describe('Given I am a user connected as an employee', () => {
           'user',
           JSON.stringify({
             type: 'Employee',
-            email: 'a@a',
+            email: 'e@e',
           })
         );
         const root = document.createElement('div');
@@ -205,7 +204,7 @@ describe('Given I am a user connected as an employee', () => {
         expect(message).toBeTruthy();
       });
 
-      test('fetches messages from an API and fails with 500 message error', async () => {
+      test('fetches bills from an API and fails with 500 message error', async () => {
         mockStore.bills.mockImplementationOnce(() => {
           return {
             list: () => {
