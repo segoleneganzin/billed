@@ -2,12 +2,11 @@
  * @jest-environment jsdom
  */
 
-import { screen } from '@testing-library/dom';
+import { screen, fireEvent } from '@testing-library/dom';
 import Logout from '../containers/Logout.js';
 import '@testing-library/jest-dom';
 import { localStorageMock } from '../__mocks__/localStorage.js';
 import DashboardUI from '../views/DashboardUI.js';
-import userEvent from '@testing-library/user-event';
 import { ROUTES } from '../constants/routes';
 
 const bills = [
@@ -50,7 +49,7 @@ describe('Given I am connected', () => {
 
       const disco = screen.getByTestId('layout-disconnect');
       disco.addEventListener('click', handleClick);
-      userEvent.click(disco);
+      fireEvent.click(disco);
       expect(handleClick).toHaveBeenCalled();
       expect(screen.getByText('Administration')).toBeTruthy();
     });
