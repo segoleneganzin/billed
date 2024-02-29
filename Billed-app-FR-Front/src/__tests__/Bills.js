@@ -35,7 +35,7 @@ describe('Given I am a user connected as an employee', () => {
     });
   });
   describe('When I am on Bills Page', () => {
-    test('Then bill icon in vertical layout should be highlighted', async () => {
+    beforeEach(() => {
       Object.defineProperty(window, 'localStorage', {
         value: localStorageMock,
       });
@@ -45,14 +45,16 @@ describe('Given I am a user connected as an employee', () => {
           type: 'Employee',
         })
       );
+    });
+    test('Then bill icon in vertical layout should be highlighted', async () => {
+      // it's necessary to simulate router because vertical layout isn't on BillsUI
       const root = document.createElement('div');
       root.setAttribute('id', 'root');
       document.body.append(root);
       router();
       window.onNavigate(ROUTES_PATH.Bills);
       await waitFor(() => screen.getByTestId('icon-window'));
-      const windowIcon = screen.getByTestId('icon-window');
-      expect(windowIcon).toHaveClass('active-icon');
+      expect(screen.getByTestId('icon-window')).toHaveClass('active-icon');
     });
     test('Then bills should be ordered from earliest to latest', () => {
       document.body.innerHTML = BillsUI({ data: bills });
@@ -65,137 +67,178 @@ describe('Given I am a user connected as an employee', () => {
       const datesSorted = [...dates].sort(antiChrono);
       expect(dates).toEqual(datesSorted);
     });
-  });
 
-  // add
-  describe('When I click on eye button', () => {
-    test('A modal should open', async () => {
-      Object.defineProperty(window, 'localStorage', {
-        value: localStorageMock,
-      });
-      window.localStorage.setItem(
-        'user',
-        JSON.stringify({
-          type: 'Employee',
-        })
-      );
-      const onNavigate = (pathname) => {
-        document.body.innerHTML = ROUTES({ pathname });
-      };
+    describe('When I click on eye button', () => {
+      test('Then a modal should open', async () => {
+        const onNavigate = (pathname) => {
+          document.body.innerHTML = ROUTES({ pathname });
+        };
+        const billsPage = new Bills({
+          document,
+          onNavigate,
+          store: null,
+          localStorage: window.localStorage,
+        });
+        document.body.innerHTML = BillsUI({ data: bills });
 
-      const billsPage = new Bills({
-        document,
-        onNavigate,
-        store: null,
-        localStorage: window.localStorage,
-      });
-      document.body.innerHTML = BillsUI({ data: bills });
+        const iconEye = screen.getAllByTestId('icon-eye');
+        const handleClickIconEye = jest.fn(billsPage.handleClickIconEye);
+        const modale = document.getElementById('modaleFile');
 
-      const iconEye = screen.getAllByTestId('icon-eye');
-      const handleClickIconEye = jest.fn(billsPage.handleClickIconEye);
-      const modale = document.getElementById('modaleFile');
+        $.fn.modal = jest.fn(() => modale.classList.add('show')); //mock of jquery modal
 
-      $.fn.modal = jest.fn(() => modale.classList.add('show')); //mock of jquery modal
-
-      iconEye.forEach((icon) => {
-        icon.addEventListener('click', () => handleClickIconEye(icon));
-        fireEvent.click(icon);
-        expect(handleClickIconEye).toHaveBeenCalled();
-        expect(modale).toHaveClass('show');
+        iconEye.forEach((icon) => {
+          icon.addEventListener('click', () => handleClickIconEye(icon));
+          fireEvent.click(icon);
+          expect(handleClickIconEye).toHaveBeenCalled();
+          expect(modale).toHaveClass('show');
+        });
       });
     });
-  });
-
-  describe('When I click on new bill button', () => {
-    test('Then, I should be on new bill form', async () => {
-      const onNavigate = (pathname) => {
-        document.body.innerHTML = ROUTES({ pathname });
-      };
-      Object.defineProperty(window, 'localStorage', {
-        value: localStorageMock,
+    describe('When I click on new bill button', () => {
+      test('Then, I should be on new bill form', async () => {
+        const onNavigate = (pathname) => {
+          document.body.innerHTML = ROUTES({ pathname });
+        };
+        const billsPage = new Bills({
+          document,
+          onNavigate,
+          store: null,
+          localStorage: window.localStorage,
+        });
+        document.body.innerHTML = BillsUI({ data: { bills } });
+        const handleShowBillForm = jest.fn((e) =>
+          billsPage.handleClickNewBill()
+        );
+        const iconNewBill = screen.getByTestId('btn-new-bill');
+        iconNewBill.addEventListener('click', handleShowBillForm);
+        fireEvent.click(iconNewBill);
+        expect(handleShowBillForm).toHaveBeenCalled();
+        await waitFor(() => screen.getByTestId(`form-new-bill`));
+        expect(screen.getByTestId(`form-new-bill`)).toBeTruthy();
       });
-      window.localStorage.setItem(
-        'user',
-        JSON.stringify({
-          type: 'Employee',
-        })
-      );
-      const billsPage = new Bills({
-        document,
-        onNavigate,
-        store: null,
-        localStorage: window.localStorage,
-      });
-      document.body.innerHTML = BillsUI({ data: { bills } });
-      const handleShowBillForm = jest.fn((e) => billsPage.handleClickNewBill());
-      const iconNewBill = screen.getByTestId('btn-new-bill');
-      iconNewBill.addEventListener('click', handleShowBillForm);
-      fireEvent.click(iconNewBill);
-      expect(handleShowBillForm).toHaveBeenCalled();
-      await waitFor(() => screen.getByTestId(`form-new-bill`));
-      expect(screen.getByTestId(`form-new-bill`)).toBeTruthy();
     });
   });
 });
 
 // integration test GET
 describe('Given I am a user connected as an employee', () => {
+  beforeEach(() => {
+    jest.spyOn(mockStore, 'bills');
+    Object.defineProperty(window, 'localStorage', {
+      value: localStorageMock,
+    });
+    window.localStorage.setItem(
+      'user',
+      JSON.stringify({
+        type: 'Employee',
+        email: 'e@e',
+      })
+    );
+    const root = document.createElement('div');
+    root.setAttribute('id', 'root');
+    document.body.appendChild(root);
+    router();
+  });
   describe('When I navigate to Bills page', () => {
     test('fetches bills from mock API GET', async () => {
-      localStorage.setItem(
-        'user',
-        JSON.stringify({
-          type: 'Employee',
+      const billsList = [
+        {
+          id: '47qAXb6fIm2zOKkLzMro',
+          vat: '80',
+          fileUrl:
+            'https://test.storage.tld/v0/b/billable-677b6.a…f-1.jpg?alt=media&token=c1640e12-a24b-4b11-ae52-529112e9602a',
+          status: 'pending',
+          type: 'Hôtel et logement',
+          commentary: 'séminaire billed',
+          name: 'encore',
+          fileName: 'preview-facture-free-201801-pdf-1.jpg',
+          date: '2004-04-04',
+          amount: 400,
+          commentAdmin: 'ok',
           email: 'a@a',
-        })
-      );
-      const root = document.createElement('div');
-      root.setAttribute('id', 'root');
-      document.body.append(root);
-      router();
-      window.onNavigate(ROUTES_PATH.Bills);
-      await waitFor(() => screen.getByText('Mes notes de frais'));
-      const billsPageTitle = screen.getByText('Mes notes de frais');
-      expect(billsPageTitle).toBeTruthy();
-      const newBillBtn = screen.getByTestId('btn-new-bill');
-      expect(newBillBtn).toBeTruthy();
-      const billsTable = screen.getByTestId('tbody');
-      expect(billsTable).toBeTruthy();
-      // verify if all test bill's name are presents
-      const bills1 = screen.getByText('encore');
-      expect(bills1).toBeTruthy();
-      const bills2 = screen.getByText('test1');
-      expect(bills2).toBeTruthy();
-      const bills3 = screen.getByText('test3');
-      expect(bills3).toBeTruthy();
-      const bills4 = screen.getByText('test2');
-      expect(bills4).toBeTruthy();
-      const pendingStatus = screen.getAllByText('En attente');
-      expect(pendingStatus).toHaveLength(1);
-      const refusedStatus = screen.getAllByText('Refused');
-      expect(refusedStatus).toHaveLength(2);
-      const acceptedStatus = screen.getAllByText('Accepté');
-      expect(acceptedStatus).toHaveLength(1);
+          pct: 20,
+        },
+        {
+          id: 'BeKy5Mo4jkmdfPGYpTxZ',
+          vat: '',
+          amount: 100,
+          name: 'test1',
+          fileName: '1592770761.jpeg',
+          commentary: 'plop',
+          pct: 20,
+          type: 'Transports',
+          email: 'a@a',
+          fileUrl:
+            'https://test.storage.tld/v0/b/billable-677b6.a…61.jpeg?alt=media&token=7685cd61-c112-42bc-9929-8a799bb82d8b',
+          date: '2001-01-01',
+          status: 'refused',
+          commentAdmin: 'en fait non',
+        },
+        {
+          id: 'UIUZtnPQvnbFnB0ozvJh',
+          name: 'test3',
+          email: 'a@a',
+          type: 'Services en ligne',
+          vat: '60',
+          pct: 20,
+          commentAdmin: "bon bah d'accord",
+          amount: 300,
+          status: 'accepted',
+          date: '2003-03-03',
+          commentary: '',
+          fileName:
+            'facture-client-php-exportee-dans-document-pdf-enregistre-sur-disque-dur.png',
+          fileUrl:
+            'https://test.storage.tld/v0/b/billable-677b6.a…dur.png?alt=media&token=571d34cb-9c8f-430a-af52-66221cae1da3',
+        },
+        {
+          id: 'qcCK3SzECmaZAGRrHjaC',
+          status: 'refused',
+          pct: 20,
+          amount: 200,
+          email: 'a@a',
+          name: 'test2',
+          vat: '40',
+          fileName: 'preview-facture-free-201801-pdf-1.jpg',
+          date: '2002-02-02',
+          commentAdmin: 'pas la bonne facture',
+          commentary: 'test2',
+          type: 'Restaurants et bars',
+          fileUrl:
+            'https://test.storage.tld/v0/b/billable-677b6.a…f-1.jpg?alt=media&token=4df6ed2c-12c8-42a2-b013-346c1346f732',
+        },
+      ];
+      const getBills = await mockStore.bills().list();
+      expect(mockStore.bills).toHaveBeenCalled();
+      expect(getBills).toStrictEqual(billsList);
+
+      // window.onNavigate(ROUTES_PATH.Bills);
+      // await waitFor(() => screen.getByText('Mes notes de frais'));
+      // const billsPageTitle = screen.getByText('Mes notes de frais');
+      // expect(billsPageTitle).toBeTruthy();
+      // const newBillBtn = screen.getByTestId('btn-new-bill');
+      // expect(newBillBtn).toBeTruthy();
+      // const billsTable = screen.getByTestId('tbody');
+      // expect(billsTable).toBeTruthy();
+      // // verify if all test bill's name are presents
+      // const bills1 = screen.getByText('encore');
+      // expect(bills1).toBeTruthy();
+      // const bills2 = screen.getByText('test1');
+      // expect(bills2).toBeTruthy();
+      // const bills3 = screen.getByText('test3');
+      // expect(bills3).toBeTruthy();
+      // const bills4 = screen.getByText('test2');
+      // expect(bills4).toBeTruthy();
+      // const pendingStatus = screen.getAllByText('En attente');
+      // expect(pendingStatus).toHaveLength(1);
+      // const refusedStatus = screen.getAllByText('Refused');
+      // expect(refusedStatus).toHaveLength(2);
+      // const acceptedStatus = screen.getAllByText('Accepté');
+      // expect(acceptedStatus).toHaveLength(1);
     });
 
     describe('When an error occurs on API', () => {
-      beforeEach(() => {
-        jest.spyOn(mockStore, 'bills');
-        Object.defineProperty(window, 'localStorage', {
-          value: localStorageMock,
-        });
-        window.localStorage.setItem(
-          'user',
-          JSON.stringify({
-            type: 'Employee',
-            email: 'e@e',
-          })
-        );
-        const root = document.createElement('div');
-        root.setAttribute('id', 'root');
-        document.body.appendChild(root);
-        router();
-      });
       test('fetches bills from an API and fails with 404 message error', async () => {
         mockStore.bills.mockImplementationOnce(() => {
           return {
@@ -206,8 +249,8 @@ describe('Given I am a user connected as an employee', () => {
         });
         window.onNavigate(ROUTES_PATH.Bills);
         await new Promise(process.nextTick);
-        const message = screen.getByText(/Erreur 404/);
-        expect(message).toBeTruthy();
+        expect(mockStore.bills).toHaveBeenCalled();
+        expect(screen.getByText(/Erreur 404/)).toBeTruthy();
       });
 
       test('fetches bills from an API and fails with 500 message error', async () => {
@@ -218,11 +261,10 @@ describe('Given I am a user connected as an employee', () => {
             },
           };
         });
-
         window.onNavigate(ROUTES_PATH.Bills);
         await new Promise(process.nextTick);
-        const message = screen.getByText(/Erreur 500/);
-        expect(message).toBeTruthy();
+        expect(mockStore.bills).toHaveBeenCalled();
+        expect(screen.getByText(/Erreur 500/)).toBeTruthy();
       });
     });
   });

@@ -21,40 +21,30 @@ describe('Given I am connected as an employee', () => {
         'user',
         JSON.stringify({ type: 'Employee', email: 'e@e' })
       );
+    });
+    test('Then envelope icon in vertical layout should be highlighted', async () => {
+      // it's necessary to simulate router because vertical layout isn't on NewBillUI
       const root = document.createElement('div');
       root.setAttribute('id', 'root');
       document.body.append(root);
       router();
       window.onNavigate(ROUTES_PATH.NewBill);
-    });
-    test('Then envelope icon in vertical layout should be highlighted', async () => {
       await waitFor(() => screen.getByTestId('icon-mail'));
-      const mailIcon = screen.getByTestId('icon-mail');
-      expect(mailIcon).toHaveClass('active-icon');
+      expect(screen.getByTestId('icon-mail')).toHaveClass('active-icon');
     });
     test('Then form should be display with all input', () => {
-      const newBillTitle = screen.getByText('Envoyer une note de frais');
-      expect(newBillTitle).toBeTruthy();
-      const form = screen.getByTestId(`form-new-bill`);
-      expect(form).toBeTruthy();
-      const inputType = screen.getAllByTestId('expense-type');
-      expect(inputType).toBeTruthy();
-      const inputName = screen.getAllByTestId('expense-name');
-      expect(inputName).toBeTruthy();
-      const inputDate = screen.getAllByTestId('datepicker');
-      expect(inputDate).toBeTruthy();
-      const inputAmount = screen.getAllByTestId('amount');
-      expect(inputAmount).toBeTruthy();
-      const inputVat = screen.getAllByTestId('vat');
-      expect(inputVat).toBeTruthy();
-      const inputPct = screen.getAllByTestId('pct');
-      expect(inputPct).toBeTruthy();
-      const inputCommentary = screen.getAllByTestId('commentary');
-      expect(inputCommentary).toBeTruthy();
-      const inputFile = screen.getAllByTestId('file');
-      expect(inputFile).toBeTruthy();
-      const formSubmitBtn = document.querySelector('#btn-send-bill');
-      expect(formSubmitBtn).toBeTruthy();
+      document.body.innerHTML = NewBillUI();
+      expect(screen.getByText('Envoyer une note de frais')).toBeTruthy();
+      expect(screen.getByTestId(`form-new-bill`)).toBeTruthy();
+      expect(screen.getAllByTestId('expense-type')).toBeTruthy();
+      expect(screen.getAllByTestId('expense-name')).toBeTruthy();
+      expect(screen.getAllByTestId('datepicker')).toBeTruthy();
+      expect(screen.getAllByTestId('amount')).toBeTruthy();
+      expect(screen.getAllByTestId('vat')).toBeTruthy();
+      expect(screen.getAllByTestId('pct')).toBeTruthy();
+      expect(screen.getAllByTestId('commentary')).toBeTruthy();
+      expect(screen.getAllByTestId('file')).toBeTruthy();
+      expect(document.querySelector('#btn-send-bill')).toBeTruthy();
     });
     describe('When I handleChange file', () => {
       describe('When I set valid format', () => {
@@ -110,7 +100,6 @@ describe('Given I am connected as an employee', () => {
           // side with the required.
           // The data should have been validated in the submit function for permitted testing.
           // here we just can see that there are no error with data value into console
-
           const onNavigate = (pathname) => {
             document.body.innerHTML = ROUTES({ pathname });
           };
