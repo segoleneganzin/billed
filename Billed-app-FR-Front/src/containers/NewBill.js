@@ -20,7 +20,7 @@ export default class NewBill {
   handleChangeFile = (e) => {
     e.preventDefault();
     const file = e.target.files[0];
-    // console.log(file);
+    console.log(file);
     const filePath = e.target.value.split(/\\/g);
     const fileName = filePath[filePath.length - 1];
     // *** without accept attribut into file input
@@ -44,7 +44,7 @@ export default class NewBill {
           },
         })
         .then(({ fileUrl, key }) => {
-          // console.log(fileUrl);
+          console.log(fileUrl);
           this.billId = key;
           this.fileUrl = fileUrl;
           this.fileName = fileName;
