@@ -20,7 +20,6 @@ export default class NewBill {
   handleChangeFile = (e) => {
     e.preventDefault();
     const file = e.target.files[0];
-    console.log(file);
     const filePath = e.target.value.split(/\\/g);
     const fileName = filePath[filePath.length - 1];
     // *** without accept attribut into file input
@@ -35,21 +34,8 @@ export default class NewBill {
       const email = JSON.parse(localStorage.getItem('user')).email;
       formData.append('file', file);
       formData.append('email', email);
-      this.store
-        .bills()
-        .create({
-          data: formData,
-          headers: {
-            noContentType: true,
-          },
-        })
-        .then(({ fileUrl, key }) => {
-          console.log(fileUrl);
-          this.billId = key;
-          this.fileUrl = fileUrl;
-          this.fileName = fileName;
-        })
-        .catch((error) => console.error(error));
+      this.formData = formData;
+      this.fileName = fileName;
     } else {
       e.target.setCustomValidity(
         'Veuillez choisir un format valide (jpg, jpeg ou png)'
@@ -81,8 +67,21 @@ export default class NewBill {
       fileName: this.fileName,
       status: 'pending',
     };
-    this.updateBill(bill);
-    this.onNavigate(ROUTES_PATH['Bills']);
+    this.store
+      .bills()
+      .create({
+        data: this.formData,
+        headers: {
+          noContentType: true,
+        },
+      })
+      .then(({ fileUrl, key }) => {
+        // console.log(fileUrl);
+        this.billId = key;
+        this.fileUrl = fileUrl;
+        this.updateBill(bill);
+      })
+      .catch((error) => console.error(error));
   };
 
   // not need to cover this function by tests

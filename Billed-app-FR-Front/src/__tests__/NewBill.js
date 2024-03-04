@@ -176,7 +176,7 @@ describe('Given I am connected as an employee', () => {
       document.body.appendChild(root);
       router();
     });
-    describe('When I charge file in valid format', () => {
+    describe('When I submit newBill', () => {
       test('Then it should create a bill to mock API POST', async () => {
         jest.spyOn(mockStore, 'bills');
         const newBillFile = {
@@ -189,154 +189,141 @@ describe('Given I am connected as an employee', () => {
         expect(postNewBill).toStrictEqual(newBillFile);
       });
     });
-    describe('When I submit newBill', () => {
-      test('Then it should update the bill to mock API POST', async () => {
-        window.onNavigate(ROUTES_PATH.NewBill);
-        const inputType = screen.getByTestId('expense-type');
-        fireEvent.change(inputType, { target: { value: 'Hôtel et logement' } });
-        const inputName = screen.getByTestId('expense-name');
-        fireEvent.change(inputName, { target: { value: 'encore' } });
-        const inputDate = screen.getByTestId('datepicker');
-        fireEvent.change(inputDate, { target: { value: '2004-04-04' } });
-        const inputAmount = screen.getByTestId('amount');
-        fireEvent.change(inputAmount, { target: { value: 400 } });
-        const inputVat = screen.getByTestId('vat');
-        fireEvent.change(inputVat, { target: { value: '80' } });
-        const inputPct = screen.getByTestId('pct');
-        fireEvent.change(inputPct, { target: { value: 20 } });
-        const inputCommentary = screen.getByTestId('commentary');
-        fireEvent.change(inputCommentary, {
-          target: { value: 'séminaire billed' },
-        });
-        const userDataString = window.localStorage.getItem('user');
-        const userDataObject = JSON.parse(userDataString);
-        const localEmail = JSON.parse(userDataObject).email;
-
-        const bill = {
-          id: '47qAXb6fIm2zOKkLzMro',
-          vat: inputVat.value,
-          // set manually because not accessible outside handleChange, needed get method (getFileUrl)
-          // already in db when handleChange file because the bill is created at this moment
-          fileUrl:
-            'https://firebasestorage.googleapis.com/v0/b/billable-677b6.a…f-1.jpg?alt=media&token=c1640e12-a24b-4b11-ae52-529112e9602a',
-          status: 'pending',
-          type: inputType.value,
-          commentary: inputCommentary.value,
-          name: inputName.value,
-          fileName: 'preview-facture-free-201801-pdf-1.jpg',
-          date: inputDate.value,
-          amount: parseInt(inputAmount.value),
-          commentAdmin: 'ok',
-          email: localEmail,
-          pct: parseInt(inputPct.value),
-        };
-
-        const postNewBill = await mockStore.bills().update(bill);
-        expect(mockStore.bills).toHaveBeenCalled();
-        // Check that the one posted is identical to the one stored
-        expect(postNewBill).toStrictEqual(bill);
+    test('Then it should update the bill to mock API POST', async () => {
+      window.onNavigate(ROUTES_PATH.NewBill);
+      const inputType = screen.getByTestId('expense-type');
+      fireEvent.change(inputType, { target: { value: 'Hôtel et logement' } });
+      const inputName = screen.getByTestId('expense-name');
+      fireEvent.change(inputName, { target: { value: 'encore' } });
+      const inputDate = screen.getByTestId('datepicker');
+      fireEvent.change(inputDate, { target: { value: '2004-04-04' } });
+      const inputAmount = screen.getByTestId('amount');
+      fireEvent.change(inputAmount, { target: { value: 400 } });
+      const inputVat = screen.getByTestId('vat');
+      fireEvent.change(inputVat, { target: { value: '80' } });
+      const inputPct = screen.getByTestId('pct');
+      fireEvent.change(inputPct, { target: { value: 20 } });
+      const inputCommentary = screen.getByTestId('commentary');
+      fireEvent.change(inputCommentary, {
+        target: { value: 'séminaire billed' },
       });
+      const userData = JSON.parse(localStorage.getItem('user'));
+      const localEmail = JSON.parse(userData).email;
+
+      const bill = {
+        id: '47qAXb6fIm2zOKkLzMro',
+        vat: inputVat.value,
+        // set manually because not accessible outside handleChange, needed get method (getFileUrl)
+        // already in db when handleChange file because the bill is created at this moment
+        fileUrl:
+          'https://firebasestorage.googleapis.com/v0/b/billable-677b6.a…f-1.jpg?alt=media&token=c1640e12-a24b-4b11-ae52-529112e9602a',
+        status: 'pending',
+        type: inputType.value,
+        commentary: inputCommentary.value,
+        name: inputName.value,
+        fileName: 'preview-facture-free-201801-pdf-1.jpg',
+        date: inputDate.value,
+        amount: parseInt(inputAmount.value),
+        commentAdmin: 'ok',
+        email: localEmail,
+        pct: parseInt(inputPct.value),
+      };
+
+      const postNewBill = await mockStore.bills().update(bill);
+      expect(mockStore.bills).toHaveBeenCalled();
+      // Check that the one posted is identical to the one stored
+      expect(postNewBill).toStrictEqual(bill);
     });
-    // there's no error handling in the view, so we spy on the console (catch error case)
-    describe('When an error occurs on API', () => {
-      test('create bill from an API and fails with 404 message error', async () => {
-        window.onNavigate(ROUTES_PATH.NewBill);
-        const post = jest.spyOn(console, 'error');
-        mockStore.bills.mockImplementationOnce(() => {
-          return {
-            create: jest.fn(() => Promise.reject(new Error('404 Not Found'))),
-          };
-        });
-        const newBill = new NewBill({
-          document,
-          onNavigate,
-          store: mockStore,
-          localStorage,
-        });
-        const mockEvent = {
-          preventDefault: jest.fn(),
-          target: {
-            files: [new File(['image'], 'image.jpg', { type: 'image/jpg' })],
-            value: 'C:\\fakepath\\image.jpg',
-            setCustomValidity: jest.fn(),
-          },
-        };
-        newBill.handleChangeFile(mockEvent);
-        await new Promise(process.nextTick);
-        expect(post).toBeCalledWith(new Error('404 Not Found'));
+  });
+  // there's no error handling in the view, so we spy on the console (catch error case)
+  describe('When an error occurs on API', () => {
+    test('create bill from an API and fails with 404 message error', async () => {
+      window.onNavigate(ROUTES_PATH.NewBill);
+      const post = jest.spyOn(console, 'error');
+      const store = {
+        bills: jest.fn(() => newBill.store),
+        create: jest.fn(() => Promise.reject(new Error('404 Not Found'))),
+        update: jest.fn(() => Promise.resolve({})),
+      };
+      const newBill = new NewBill({
+        document,
+        onNavigate,
+        store: store,
+        localStorage,
       });
-      test('create bill from an API and fails with 500 message error', async () => {
-        window.onNavigate(ROUTES_PATH.NewBill);
-        const post = jest.spyOn(console, 'error');
-        mockStore.bills.mockImplementationOnce(() => {
-          return {
-            create: jest.fn(() =>
-              Promise.reject(new Error('500 Internal Server Error'))
-            ),
-          };
-        });
-        const newBill = new NewBill({
-          document,
-          onNavigate,
-          store: mockStore,
-          localStorage,
-        });
-        const mockEvent = {
-          preventDefault: jest.fn(),
-          target: {
-            files: [new File(['image'], 'image.jpg', { type: 'image/jpg' })],
-            value: 'C:\\fakepath\\image.jpg',
-            setCustomValidity: jest.fn(),
-          },
-        };
-        newBill.handleChangeFile(mockEvent);
-        await new Promise(process.nextTick);
-        expect(post).toBeCalledWith(new Error('500 Internal Server Error'));
+      const form = screen.getByTestId('form-new-bill');
+      const handleSubmit = jest.fn((e) => newBill.handleSubmit(e));
+      form.addEventListener('submit', handleSubmit);
+      fireEvent.submit(form);
+      await new Promise(process.nextTick);
+      expect(post).toBeCalledWith(new Error('404 Not Found'));
+    });
+    test('create bill from an API and fails with 500 message error', async () => {
+      window.onNavigate(ROUTES_PATH.NewBill);
+      const post = jest.spyOn(console, 'error');
+      const store = {
+        bills: jest.fn(() => newBill.store),
+        create: jest.fn(() =>
+          Promise.reject(new Error('500 Internal Server Error'))
+        ),
+        update: jest.fn(() => Promise.resolve({})),
+      };
+      const newBill = new NewBill({
+        document,
+        onNavigate,
+        store: store,
+        localStorage,
       });
-      test('update bill from an API and fails with 404 message error', async () => {
-        window.onNavigate(ROUTES_PATH.NewBill);
-        const post = jest.spyOn(console, 'error');
-        mockStore.bills.mockImplementationOnce(() => {
-          return {
-            update: jest.fn(() => Promise.reject(new Error('404 Not Found'))),
-          };
-        });
-        const newBill = new NewBill({
-          document,
-          onNavigate,
-          store: mockStore,
-          localStorage,
-        });
-        const form = screen.getByTestId('form-new-bill');
-        const handleSubmit = jest.fn((e) => newBill.handleSubmit(e));
-        form.addEventListener('submit', handleSubmit);
-        fireEvent.submit(form);
-        await new Promise(process.nextTick);
-        expect(post).toBeCalledWith(new Error('404 Not Found'));
+      const form = screen.getByTestId('form-new-bill');
+      const handleSubmit = jest.fn((e) => newBill.handleSubmit(e));
+      form.addEventListener('submit', handleSubmit);
+      fireEvent.submit(form);
+      await new Promise(process.nextTick);
+      expect(post).toBeCalledWith(new Error('500 Internal Server Error'));
+    });
+    test('update bill from an API and fails with 404 message error', async () => {
+      window.onNavigate(ROUTES_PATH.NewBill);
+      const post = jest.spyOn(console, 'error');
+      const store = {
+        bills: jest.fn(() => newBill.store),
+        create: jest.fn(() => Promise.resolve({})),
+        update: jest.fn(() => Promise.reject(new Error('404 Not Found'))),
+      };
+      const newBill = new NewBill({
+        document,
+        onNavigate,
+        store: store,
+        localStorage,
       });
-      test('update bill from an API and fails with 500 message error', async () => {
-        window.onNavigate(ROUTES_PATH.NewBill);
-        const post = jest.spyOn(console, 'error');
-        mockStore.bills.mockImplementationOnce(() => {
-          return {
-            update: jest.fn(() =>
-              Promise.reject(new Error('500 Internal Server Error'))
-            ),
-          };
-        });
-        const newBill = new NewBill({
-          document,
-          onNavigate,
-          store: mockStore,
-          localStorage,
-        });
-        const form = screen.getByTestId('form-new-bill');
-        const handleSubmit = jest.fn((e) => newBill.handleSubmit(e));
-        form.addEventListener('submit', handleSubmit);
-        fireEvent.submit(form);
-        await new Promise(process.nextTick);
-        expect(post).toBeCalledWith(new Error('500 Internal Server Error'));
+      const form = screen.getByTestId('form-new-bill');
+      const handleSubmit = jest.fn((e) => newBill.handleSubmit(e));
+      form.addEventListener('submit', handleSubmit);
+      fireEvent.submit(form);
+      await new Promise(process.nextTick);
+      expect(post).toBeCalledWith(new Error('404 Not Found'));
+    });
+    test('update bill from an API and fails with 500 message error', async () => {
+      window.onNavigate(ROUTES_PATH.NewBill);
+      const post = jest.spyOn(console, 'error');
+      const store = {
+        bills: jest.fn(() => newBill.store),
+        create: jest.fn(() => Promise.resolve({})),
+        update: jest.fn(() =>
+          Promise.reject(new Error('500 Internal Server Error'))
+        ),
+      };
+      const newBill = new NewBill({
+        document,
+        onNavigate,
+        store: store,
+        localStorage,
       });
+      const form = screen.getByTestId('form-new-bill');
+      const handleSubmit = jest.fn((e) => newBill.handleSubmit(e));
+      form.addEventListener('submit', handleSubmit);
+      fireEvent.submit(form);
+      await new Promise(process.nextTick);
+      expect(post).toBeCalledWith(new Error('500 Internal Server Error'));
     });
   });
 });
