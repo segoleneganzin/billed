@@ -86,19 +86,19 @@ describe('Given I am connected as an Admin', () => {
       const icon3 = screen.getByTestId('arrow-icon3');
 
       icon1.addEventListener('click', handleShowTickets1);
-      fireEvent.click(icon1);
+      userEvent.click(icon1);
       expect(handleShowTickets1).toHaveBeenCalled();
       await waitFor(() => screen.getByTestId(`open-bill47qAXb6fIm2zOKkLzMro`));
       expect(screen.getByTestId(`open-bill47qAXb6fIm2zOKkLzMro`)).toBeTruthy();
 
       icon2.addEventListener('click', handleShowTickets2);
-      fireEvent.click(icon2);
+      userEvent.click(icon2);
       expect(handleShowTickets2).toHaveBeenCalled();
       await waitFor(() => screen.getByTestId(`open-billUIUZtnPQvnbFnB0ozvJh`));
       expect(screen.getByTestId(`open-billUIUZtnPQvnbFnB0ozvJh`)).toBeTruthy();
 
       icon3.addEventListener('click', handleShowTickets3);
-      fireEvent.click(icon3);
+      userEvent.click(icon3);
       expect(handleShowTickets3).toHaveBeenCalled();
       await waitFor(() => screen.getByTestId(`open-billBeKy5Mo4jkmdfPGYpTxZ`));
       expect(screen.getByTestId(`open-billBeKy5Mo4jkmdfPGYpTxZ`)).toBeTruthy();
@@ -134,11 +134,11 @@ describe('Given I am connected as an Admin', () => {
       );
       const icon1 = screen.getByTestId('arrow-icon1');
       icon1.addEventListener('click', handleShowTickets1);
-      fireEvent.click(icon1);
+      userEvent.click(icon1);
       expect(handleShowTickets1).toHaveBeenCalled();
       expect(screen.getByTestId(`open-bill47qAXb6fIm2zOKkLzMro`)).toBeTruthy();
       const iconEdit = screen.getByTestId('open-bill47qAXb6fIm2zOKkLzMro');
-      fireEvent.click(iconEdit);
+      userEvent.click(iconEdit);
       expect(screen.getByTestId(`dashboard-form`)).toBeTruthy();
     });
   });
@@ -173,7 +173,7 @@ describe('Given I am connected as an Admin', () => {
       );
       const icon1 = screen.getByTestId('arrow-icon1');
       icon1.addEventListener('click', handleShowTickets1);
-      fireEvent.click(icon1);
+      userEvent.click(icon1);
       expect(handleShowTickets1).toHaveBeenCalled();
       expect(screen.getByTestId(`open-bill47qAXb6fIm2zOKkLzMro`)).toBeTruthy();
 
@@ -296,7 +296,7 @@ describe('Given I am connected as Admin and I am on Dashboard page and I clicked
       const handleClickIconEye = jest.fn(dashboard.handleClickIconEye);
       const eye = screen.getByTestId('icon-eye-d');
       eye.addEventListener('click', handleClickIconEye);
-      fireEvent.click(eye);
+      userEvent.click(eye);
       expect(handleClickIconEye).toHaveBeenCalled();
 
       const modale = screen.getByTestId('modaleFileAdmin');
@@ -319,9 +319,9 @@ describe('Given I am a user connected as Admin', () => {
       router();
       window.onNavigate(ROUTES_PATH.Dashboard);
       await waitFor(() => screen.getByText('Validations'));
-      const contentPending = screen.getByText('En attente (1)');
+      const contentPending = await screen.getByText('En attente (1)');
       expect(contentPending).toBeTruthy();
-      const contentRefused = screen.getByText('Refusé (2)');
+      const contentRefused = await screen.getByText('Refusé (2)');
       expect(contentRefused).toBeTruthy();
       expect(screen.getByTestId('big-billed-icon')).toBeTruthy();
     });

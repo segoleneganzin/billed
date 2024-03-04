@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 import { screen, waitFor, fireEvent } from '@testing-library/dom';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import NewBillUI from '../views/NewBillUI.js';
 import NewBill from '../containers/NewBill.js';

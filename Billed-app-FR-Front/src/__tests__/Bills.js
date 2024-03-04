@@ -1,7 +1,8 @@
 /**
  * @jest-environment jsdom
  */
-import { fireEvent, screen, waitFor } from '@testing-library/dom';
+import { screen, waitFor } from '@testing-library/dom';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import BillsUI from '../views/BillsUI.js';
 import Bills from '../containers/Bills.js';
@@ -68,6 +69,18 @@ describe('Given I am a user connected as an employee', () => {
       expect(dates).toEqual(datesSorted);
     });
 
+    test('Then rows contain the right information in the right place', () => {
+      document.body.innerHTML = BillsUI({ data: bills });
+      expect(screen.getAllByTestId('type')[0].textContent).toBe(
+        'Hôtel et logement'
+      );
+      expect(screen.getAllByTestId('name')[0].textContent).toBe('encore');
+      expect(screen.getAllByTestId('date')[0].textContent).toBe('2004-04-04');
+      expect(screen.getAllByTestId('amount')[0].textContent).toBe('400 €');
+      expect(screen.getAllByTestId('status')[0].textContent).toBe('pending');
+      expect(screen.getAllByTestId('icon-eye')[0].textContent).toBeTruthy();
+    });
+
     describe('When I click on eye button', () => {
       test('Then a modal should open', async () => {
         const onNavigate = (pathname) => {
@@ -89,7 +102,7 @@ describe('Given I am a user connected as an employee', () => {
 
         iconEye.forEach((icon) => {
           icon.addEventListener('click', () => handleClickIconEye(icon));
-          fireEvent.click(icon);
+          userEvent.click(icon);
           expect(handleClickIconEye).toHaveBeenCalled();
           expect(modale).toHaveClass('show');
         });
@@ -112,7 +125,7 @@ describe('Given I am a user connected as an employee', () => {
         );
         const iconNewBill = screen.getByTestId('btn-new-bill');
         iconNewBill.addEventListener('click', handleShowBillForm);
-        fireEvent.click(iconNewBill);
+        userEvent.click(iconNewBill);
         expect(handleShowBillForm).toHaveBeenCalled();
         await waitFor(() => screen.getByTestId(`form-new-bill`));
         expect(screen.getByTestId(`form-new-bill`)).toBeTruthy();
