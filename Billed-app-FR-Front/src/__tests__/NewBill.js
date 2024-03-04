@@ -243,7 +243,6 @@ describe('Given I am connected as an employee', () => {
       const store = {
         bills: jest.fn(() => newBill.store),
         create: jest.fn(() => Promise.reject(new Error('404 Not Found'))),
-        update: jest.fn(() => Promise.resolve({})),
       };
       const newBill = new NewBill({
         document,
@@ -266,7 +265,6 @@ describe('Given I am connected as an employee', () => {
         create: jest.fn(() =>
           Promise.reject(new Error('500 Internal Server Error'))
         ),
-        update: jest.fn(() => Promise.resolve({})),
       };
       const newBill = new NewBill({
         document,
