@@ -99,7 +99,6 @@ describe('Given I am connected as an employee', () => {
           // as the submit is intercepted by the validator on the html
           // side with the required.
           // The data should have been validated in the submit function for permitted testing.
-          // here we just can see that there are no error with data value into console
           const onNavigate = (pathname) => {
             document.body.innerHTML = ROUTES({ pathname });
           };
@@ -147,6 +146,7 @@ describe('Given I am connected as an employee', () => {
           fireEvent.submit(form);
           expect(handleSubmit).toHaveBeenCalled();
           expect(mockEvent.preventDefault).toHaveBeenCalledTimes(1);
+          // test redirection to Bills page
           await waitFor(() => screen.getByText('Mes notes de frais'));
           expect(screen.getByText('Mes notes de frais')).toBeTruthy();
           expect(screen.getByTestId('btn-new-bill')).toBeTruthy();
@@ -188,51 +188,49 @@ describe('Given I am connected as an employee', () => {
         // Check that the one posted is identical to the one stored
         expect(postNewBill).toStrictEqual(newBillFile);
       });
-    });
-    test('Then it should update the bill to mock API POST', async () => {
-      window.onNavigate(ROUTES_PATH.NewBill);
-      const inputType = screen.getByTestId('expense-type');
-      fireEvent.change(inputType, { target: { value: 'Hôtel et logement' } });
-      const inputName = screen.getByTestId('expense-name');
-      fireEvent.change(inputName, { target: { value: 'encore' } });
-      const inputDate = screen.getByTestId('datepicker');
-      fireEvent.change(inputDate, { target: { value: '2004-04-04' } });
-      const inputAmount = screen.getByTestId('amount');
-      fireEvent.change(inputAmount, { target: { value: 400 } });
-      const inputVat = screen.getByTestId('vat');
-      fireEvent.change(inputVat, { target: { value: '80' } });
-      const inputPct = screen.getByTestId('pct');
-      fireEvent.change(inputPct, { target: { value: 20 } });
-      const inputCommentary = screen.getByTestId('commentary');
-      fireEvent.change(inputCommentary, {
-        target: { value: 'séminaire billed' },
+      test('Then it should update the bill to mock API POST', async () => {
+        window.onNavigate(ROUTES_PATH.NewBill);
+        const inputType = screen.getByTestId('expense-type');
+        fireEvent.change(inputType, { target: { value: 'Hôtel et logement' } });
+        const inputName = screen.getByTestId('expense-name');
+        fireEvent.change(inputName, { target: { value: 'encore' } });
+        const inputDate = screen.getByTestId('datepicker');
+        fireEvent.change(inputDate, { target: { value: '2004-04-04' } });
+        const inputAmount = screen.getByTestId('amount');
+        fireEvent.change(inputAmount, { target: { value: 400 } });
+        const inputVat = screen.getByTestId('vat');
+        fireEvent.change(inputVat, { target: { value: '80' } });
+        const inputPct = screen.getByTestId('pct');
+        fireEvent.change(inputPct, { target: { value: 20 } });
+        const inputCommentary = screen.getByTestId('commentary');
+        fireEvent.change(inputCommentary, {
+          target: { value: 'séminaire billed' },
+        });
+        const userData = JSON.parse(localStorage.getItem('user'));
+        const localEmail = JSON.parse(userData).email;
+        // fileUrl and fileName are set to raw because they already exist in the db (at the time of create)
+        const bill = {
+          id: '47qAXb6fIm2zOKkLzMro',
+          vat: inputVat.value,
+          fileUrl:
+            'https://firebasestorage.googleapis.com/v0/b/billable-677b6.a…f-1.jpg?alt=media&token=c1640e12-a24b-4b11-ae52-529112e9602a',
+          status: 'pending',
+          type: inputType.value,
+          commentary: inputCommentary.value,
+          name: inputName.value,
+          fileName: 'preview-facture-free-201801-pdf-1.jpg',
+          date: inputDate.value,
+          amount: parseInt(inputAmount.value),
+          commentAdmin: 'ok',
+          email: localEmail,
+          pct: parseInt(inputPct.value),
+        };
+
+        const postNewBill = await mockStore.bills().update(bill);
+        expect(mockStore.bills).toHaveBeenCalled();
+        // Check that the one posted is identical to the one stored
+        expect(postNewBill).toStrictEqual(bill);
       });
-      const userData = JSON.parse(localStorage.getItem('user'));
-      const localEmail = JSON.parse(userData).email;
-
-      const bill = {
-        id: '47qAXb6fIm2zOKkLzMro',
-        vat: inputVat.value,
-        // set manually because not accessible outside handleChange, needed get method (getFileUrl)
-        // already in db when handleChange file because the bill is created at this moment
-        fileUrl:
-          'https://firebasestorage.googleapis.com/v0/b/billable-677b6.a…f-1.jpg?alt=media&token=c1640e12-a24b-4b11-ae52-529112e9602a',
-        status: 'pending',
-        type: inputType.value,
-        commentary: inputCommentary.value,
-        name: inputName.value,
-        fileName: 'preview-facture-free-201801-pdf-1.jpg',
-        date: inputDate.value,
-        amount: parseInt(inputAmount.value),
-        commentAdmin: 'ok',
-        email: localEmail,
-        pct: parseInt(inputPct.value),
-      };
-
-      const postNewBill = await mockStore.bills().update(bill);
-      expect(mockStore.bills).toHaveBeenCalled();
-      // Check that the one posted is identical to the one stored
-      expect(postNewBill).toStrictEqual(bill);
     });
   });
   // there's no error handling in the view, so we spy on the console (catch error case)

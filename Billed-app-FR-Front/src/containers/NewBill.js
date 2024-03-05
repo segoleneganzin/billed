@@ -20,15 +20,16 @@ export default class NewBill {
   handleChangeFile = (e) => {
     e.preventDefault();
     const file = e.target.files[0];
-    const filePath = e.target.value.split(/\\/g);
-    const fileName = filePath[filePath.length - 1];
-    // *** without accept attribut into file input
+    const fileName = file.name;
+    // get file extension
     const fileFormat = fileName.substring(fileName.lastIndexOf('.'));
     if (
       fileFormat === '.jpg' ||
       fileFormat === '.jpeg' ||
       fileFormat === '.png'
     ) {
+      // if extension is valid, FormData is created for save datas (file + email)
+      // and custom validity is set to empty string
       e.target.setCustomValidity('');
       const formData = new FormData();
       const email = JSON.parse(localStorage.getItem('user')).email;
@@ -37,6 +38,7 @@ export default class NewBill {
       this.formData = formData;
       this.fileName = fileName;
     } else {
+      // if extension is not valid, custom validity is set to inform user
       e.target.setCustomValidity(
         'Veuillez choisir un format valide (jpg, jpeg ou png)'
       );
@@ -44,10 +46,6 @@ export default class NewBill {
   };
   handleSubmit = (e) => {
     e.preventDefault();
-    console.log(
-      'e.target.querySelector(`input[data-testid="datepicker"]`).value',
-      e.target.querySelector(`input[data-testid="datepicker"]`).value
-    );
     const email = JSON.parse(localStorage.getItem('user')).email;
     const bill = {
       email,

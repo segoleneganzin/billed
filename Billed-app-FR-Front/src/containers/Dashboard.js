@@ -95,6 +95,7 @@ export default class {
   };
 
   handleEditTicket(e, bill, bills) {
+    // if open is not defined or if another bill is already open, open = false
     if (this.open === undefined || this.id !== bill.id) this.open = false;
     this.id = bill.id;
     if (!this.open) {
@@ -139,6 +140,7 @@ export default class {
   };
 
   handleShowTickets(e, bills, index) {
+    // if open is not defined or if another index is already open, open = false
     if (this.open === undefined || this.index !== index) this.open = false;
     this.index = index;
     if (!this.open) {
@@ -157,7 +159,6 @@ export default class {
         this.handleEditTicket(e, bill, bills)
       );
     });
-
     return bills;
   }
 
