@@ -53,5 +53,5 @@ Jest
 
 ### 🛠 Architecture du projet
 
-Ce projet se compose d'un repertoire front-end et d'un répertoire back-end.
+Ce projet se compose d'un repertoire front-end et d'un répertoire back-end. <br>
 Chaque répertoire a son README expliquant comment lancer l'application en local.
