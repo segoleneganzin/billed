@@ -50,3 +50,8 @@ Jest
 ➡ Ecrire des tests unitaires avec JavaScript <br>
 ➡ Ecrire des tests d'intégration avec JavaScript <br>
 ➡ Rédiger un plan de test end-to-end manuel <br>
+
+### 🛠 Architecture du projet
+
+Ce projet se compose d'un repertoire front-end et d'un répertoire back-end.
+Chaque répertoire a son README expliquant comment lancer l'application en local.
