@@ -41,7 +41,7 @@ Jest
 ### 📄 Documentation
 
 ([Voir le rapport de couverture jest](Ressources/jest-cover-report.png)) <br>
-([Voir le rapport de tests jest](Ressources/jest-test-report.png))
+([Voir le rapport de tests jest](Ressources/jest-test-report.png))<br>
 ([Voir le plan de tests end to end](Ressources/plan-de-test-e2e-employee.pdf))
 
 ### 🏆 Compétences évaluées
