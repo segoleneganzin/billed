@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { screen, waitFor } from '@testing-library/dom';
+import { screen, waitFor, logRoles } from '@testing-library/dom';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import BillsUI from '../views/BillsUI.js';
@@ -71,6 +71,7 @@ describe('Given I am a user connected as an employee', () => {
 
     test('Then rows contain the right information in the right place', () => {
       document.body.innerHTML = BillsUI({ data: bills });
+      // logRoles(document.body);
       expect(screen.getAllByTestId('type')[0].textContent).toBe(
         'Hôtel et logement'
       );
@@ -99,12 +100,12 @@ describe('Given I am a user connected as an employee', () => {
         const modale = document.getElementById('modaleFile');
 
         $.fn.modal = jest.fn(() => modale.classList.add('show')); //mock of jquery modal
-
         iconEye.forEach((icon) => {
           icon.addEventListener('click', () => handleClickIconEye(icon));
           userEvent.click(icon);
           expect(handleClickIconEye).toHaveBeenCalled();
           expect(modale).toHaveClass('show');
+          icon.removeEventListener('click', () => handleClickIconEye(icon));
         });
       });
     });
@@ -129,6 +130,7 @@ describe('Given I am a user connected as an employee', () => {
         expect(handleShowBillForm).toHaveBeenCalled();
         await waitFor(() => screen.getByTestId(`form-new-bill`));
         expect(screen.getByTestId(`form-new-bill`)).toBeTruthy();
+        iconNewBill.removeEventListener('click', handleShowBillForm);
       });
     });
   });

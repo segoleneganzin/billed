@@ -150,6 +150,7 @@ describe('Given I am connected as an employee', () => {
           await waitFor(() => screen.getByText('Mes notes de frais'));
           expect(screen.getByText('Mes notes de frais')).toBeTruthy();
           expect(screen.getByTestId('btn-new-bill')).toBeTruthy();
+          form.removeEventListener('submit', handleSubmit);
         });
       });
     });
@@ -159,36 +160,36 @@ describe('Given I am connected as an employee', () => {
 // integration test POST
 describe('Given I am connected as an employee', () => {
   describe('When I am on NewBill Page', () => {
-    beforeEach(() => {
-      jest.spyOn(mockStore, 'bills');
-      Object.defineProperty(window, 'localStorage', {
-        value: localStorageMock,
-      });
-      window.localStorage.setItem(
-        'user',
-        JSON.stringify({
-          type: 'Employee',
-          email: 'a@a',
-        })
-      );
-      const root = document.createElement('div');
-      root.setAttribute('id', 'root');
-      document.body.appendChild(root);
-      router();
-    });
     describe('When I submit newBill', () => {
-      test('Then it should create a bill to mock API POST', async () => {
+      beforeEach(() => {
         jest.spyOn(mockStore, 'bills');
+        Object.defineProperty(window, 'localStorage', {
+          value: localStorageMock,
+        });
+        window.localStorage.setItem(
+          'user',
+          JSON.stringify({
+            type: 'Employee',
+            email: 'a@a',
+          })
+        );
+        const root = document.createElement('div');
+        root.setAttribute('id', 'root');
+        document.body.appendChild(root);
+        router();
+      });
+      test('Then created bill should correspond to mock API POST', async () => {
+        window.onNavigate(ROUTES_PATH.NewBill);
         const newBillFile = {
           fileUrl: 'https://localhost:3456/images/test.jpg',
           key: '1234',
         };
-        const postNewBill = await mockStore.bills().create(newBillFile);
+        const createNewBill = await mockStore.bills().create(newBillFile);
         expect(mockStore.bills).toHaveBeenCalled();
         // Check that the one posted is identical to the one stored
-        expect(postNewBill).toStrictEqual(newBillFile);
+        expect(createNewBill).toStrictEqual(newBillFile);
       });
-      test('Then it should update the bill to mock API POST', async () => {
+      test('Then updated bill should correspond to mock API PUT', async () => {
         window.onNavigate(ROUTES_PATH.NewBill);
         const inputType = screen.getByTestId('expense-type');
         fireEvent.change(inputType, { target: { value: 'Hôtel et logement' } });
@@ -225,101 +226,128 @@ describe('Given I am connected as an employee', () => {
           email: localEmail,
           pct: parseInt(inputPct.value),
         };
-
-        const postNewBill = await mockStore.bills().update(bill);
+        const updateNewBill = await mockStore.bills().update(bill);
         expect(mockStore.bills).toHaveBeenCalled();
         // Check that the one posted is identical to the one stored
-        expect(postNewBill).toStrictEqual(bill);
+        expect(updateNewBill).toStrictEqual(bill);
       });
-    });
-  });
-  // there's no error handling in the view, so we spy on the console (catch error case)
-  describe('When an error occurs on API', () => {
-    test('create bill from an API and fails with 404 message error', async () => {
-      window.onNavigate(ROUTES_PATH.NewBill);
-      const post = jest.spyOn(console, 'error');
-      const store = {
-        bills: jest.fn(() => newBill.store),
-        create: jest.fn(() => Promise.reject(new Error('404 Not Found'))),
-      };
-      const newBill = new NewBill({
-        document,
-        onNavigate,
-        store: store,
-        localStorage,
+      // there's no error handling in the view, so we spy on the console (catch error case)
+      describe('When an error occurs on API', () => {
+        test('create bill from an API and fails with 404 message error', async () => {
+          window.onNavigate(ROUTES_PATH.NewBill);
+          const post = jest.spyOn(console, 'error');
+          mockStore.bills.mockImplementation(() => {
+            return {
+              create: () => {
+                return Promise.reject(new Error('404 Not Found on create'));
+              },
+            };
+          });
+          const newBill = new NewBill({
+            document,
+            onNavigate,
+            store: mockStore,
+            localStorage,
+          });
+          const form = screen.getByTestId('form-new-bill');
+          const handleSubmit = jest.fn((e) => newBill.handleSubmit(e));
+          form.addEventListener('submit', handleSubmit);
+          fireEvent.submit(form);
+          await new Promise(process.nextTick);
+          expect(post).toBeCalledWith(new Error('404 Not Found on create'));
+          form.removeEventListener('submit', handleSubmit);
+          mockStore.bills.mockClear();
+        });
+        test('create bill from an API and fails with 500 message error', async () => {
+          window.onNavigate(ROUTES_PATH.NewBill);
+          const post = jest.spyOn(console, 'error');
+          mockStore.bills.mockImplementation(() => {
+            return {
+              create: () => {
+                return Promise.reject(
+                  new Error('500 Internal Server Error on create')
+                );
+              },
+            };
+          });
+          const newBill = new NewBill({
+            document,
+            onNavigate,
+            store: mockStore,
+            localStorage,
+          });
+          const form = screen.getByTestId('form-new-bill');
+          const handleSubmit = jest.fn((e) => newBill.handleSubmit(e));
+          form.addEventListener('submit', handleSubmit);
+          fireEvent.submit(form);
+          await new Promise(process.nextTick);
+          expect(post).toBeCalledWith(
+            new Error('500 Internal Server Error on create')
+          );
+          form.removeEventListener('submit', handleSubmit);
+          mockStore.bills.mockClear();
+        });
+        test('update bill from an API and fails with 404 message error', async () => {
+          window.onNavigate(ROUTES_PATH.NewBill);
+          const update = jest.spyOn(console, 'error');
+          mockStore.bills.mockImplementation(() => {
+            return {
+              create: () => {
+                return Promise.resolve({});
+              },
+              update: () => {
+                return Promise.reject(new Error('404 Not Found on update'));
+              },
+            };
+          });
+          const newBill = new NewBill({
+            document,
+            onNavigate,
+            store: mockStore,
+            localStorage,
+          });
+          const form = screen.getByTestId('form-new-bill');
+          const handleSubmit = jest.fn((e) => newBill.handleSubmit(e));
+          form.addEventListener('submit', handleSubmit);
+          fireEvent.submit(form);
+          await new Promise(process.nextTick);
+          expect(update).toBeCalledWith(new Error('404 Not Found on update'));
+          form.removeEventListener('submit', handleSubmit);
+          mockStore.bills.mockClear();
+        });
+        test('update bill from an API and fails with 500 message error', async () => {
+          window.onNavigate(ROUTES_PATH.NewBill);
+          const update = jest.spyOn(console, 'error');
+          mockStore.bills.mockImplementation(() => {
+            return {
+              create: () => {
+                return Promise.resolve({});
+              },
+              update: () => {
+                return Promise.reject(
+                  new Error('500 Internal Server Error on update')
+                );
+              },
+            };
+          });
+          const newBill = new NewBill({
+            document,
+            onNavigate,
+            store: mockStore,
+            localStorage,
+          });
+          const form = screen.getByTestId('form-new-bill');
+          const handleSubmit = jest.fn((e) => newBill.handleSubmit(e));
+          form.addEventListener('submit', handleSubmit);
+          fireEvent.submit(form);
+          await new Promise(process.nextTick);
+          expect(update).toBeCalledWith(
+            new Error('500 Internal Server Error on update')
+          );
+          form.removeEventListener('submit', handleSubmit);
+          mockStore.bills.mockClear();
+        });
       });
-      const form = screen.getByTestId('form-new-bill');
-      const handleSubmit = jest.fn((e) => newBill.handleSubmit(e));
-      form.addEventListener('submit', handleSubmit);
-      fireEvent.submit(form);
-      await new Promise(process.nextTick);
-      expect(post).toBeCalledWith(new Error('404 Not Found'));
-    });
-    test('create bill from an API and fails with 500 message error', async () => {
-      window.onNavigate(ROUTES_PATH.NewBill);
-      const post = jest.spyOn(console, 'error');
-      const store = {
-        bills: jest.fn(() => newBill.store),
-        create: jest.fn(() =>
-          Promise.reject(new Error('500 Internal Server Error'))
-        ),
-      };
-      const newBill = new NewBill({
-        document,
-        onNavigate,
-        store: store,
-        localStorage,
-      });
-      const form = screen.getByTestId('form-new-bill');
-      const handleSubmit = jest.fn((e) => newBill.handleSubmit(e));
-      form.addEventListener('submit', handleSubmit);
-      fireEvent.submit(form);
-      await new Promise(process.nextTick);
-      expect(post).toBeCalledWith(new Error('500 Internal Server Error'));
-    });
-    test('update bill from an API and fails with 404 message error', async () => {
-      window.onNavigate(ROUTES_PATH.NewBill);
-      const post = jest.spyOn(console, 'error');
-      const store = {
-        bills: jest.fn(() => newBill.store),
-        create: jest.fn(() => Promise.resolve({})),
-        update: jest.fn(() => Promise.reject(new Error('404 Not Found'))),
-      };
-      const newBill = new NewBill({
-        document,
-        onNavigate,
-        store: store,
-        localStorage,
-      });
-      const form = screen.getByTestId('form-new-bill');
-      const handleSubmit = jest.fn((e) => newBill.handleSubmit(e));
-      form.addEventListener('submit', handleSubmit);
-      fireEvent.submit(form);
-      await new Promise(process.nextTick);
-      expect(post).toBeCalledWith(new Error('404 Not Found'));
-    });
-    test('update bill from an API and fails with 500 message error', async () => {
-      window.onNavigate(ROUTES_PATH.NewBill);
-      const post = jest.spyOn(console, 'error');
-      const store = {
-        bills: jest.fn(() => newBill.store),
-        create: jest.fn(() => Promise.resolve({})),
-        update: jest.fn(() =>
-          Promise.reject(new Error('500 Internal Server Error'))
-        ),
-      };
-      const newBill = new NewBill({
-        document,
-        onNavigate,
-        store: store,
-        localStorage,
-      });
-      const form = screen.getByTestId('form-new-bill');
-      const handleSubmit = jest.fn((e) => newBill.handleSubmit(e));
-      form.addEventListener('submit', handleSubmit);
-      fireEvent.submit(form);
-      await new Promise(process.nextTick);
-      expect(post).toBeCalledWith(new Error('500 Internal Server Error'));
     });
   });
 });
