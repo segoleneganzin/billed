@@ -83,7 +83,7 @@ describe('Given I am a user connected as an employee', () => {
     });
 
     describe('When I click on eye button', () => {
-      test('Then a modal should open', async () => {
+      test('Then a modal should open with title and file', async () => {
         const onNavigate = (pathname) => {
           document.body.innerHTML = ROUTES({ pathname });
         };
@@ -100,13 +100,19 @@ describe('Given I am a user connected as an employee', () => {
         const modale = document.getElementById('modaleFile');
 
         $.fn.modal = jest.fn(() => modale.classList.add('show')); //mock of jquery modal
-        iconEye.forEach((icon) => {
-          icon.addEventListener('click', () => handleClickIconEye(icon));
-          userEvent.click(icon);
-          expect(handleClickIconEye).toHaveBeenCalled();
-          expect(modale).toHaveClass('show');
-          icon.removeEventListener('click', () => handleClickIconEye(icon));
-        });
+        if (iconEye) {
+          iconEye.forEach((icon) => {
+            icon.addEventListener('click', () => handleClickIconEye(icon));
+            userEvent.click(icon);
+            expect(handleClickIconEye).toHaveBeenCalledWith(icon);
+            expect(modale).toHaveClass('show');
+            expect(screen.getByText('Justificatif')).toBeTruthy();
+            const url = icon.getAttribute('data-bill-url');
+            const partsUrl = url.split('/');
+            const urlFileName = partsUrl[partsUrl.length - 1];
+            expect(urlFileName).not.toEqual('null');
+          });
+        }
       });
     });
     describe('When I click on new bill button', () => {
