@@ -182,7 +182,7 @@ describe('Given I am a user connected as an employee', () => {
       expect(bills4).toBeTruthy();
       const pendingStatus = screen.getAllByText('En attente');
       expect(pendingStatus).toHaveLength(1);
-      const refusedStatus = screen.getAllByText('Refused');
+      const refusedStatus = screen.getAllByText('Refusé');
       expect(refusedStatus).toHaveLength(2);
       const acceptedStatus = screen.getAllByText('Accepté');
       expect(acceptedStatus).toHaveLength(1);
