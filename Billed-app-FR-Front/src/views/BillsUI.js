@@ -5,11 +5,12 @@ import LoadingPage from './LoadingPage.js';
 import Actions from './Actions.js';
 
 const row = (bill) => {
+  const date = bill.formatedDate ? bill.formatedDate : bill.date;
   return `
     <tr>
       <td data-testid="type">${bill.type}</td>
       <td data-testid="name">${bill.name}</td>
-      <td data-testid="date">${bill.date}</td>
+      <td data-testid="date">${date}</td>
       <td data-testid="amount">${bill.amount} €</td>
       <td data-testid="status">${bill.status}</td>
       <td>
